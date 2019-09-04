@@ -1,0 +1,143 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class CListGraph
+{
+    vector <vector <int> > to_list;
+
+public:
+    CListGraph(int vertices_count)
+    {
+        to_list = vector <vector <int> > (vertices_count);
+    }
+
+    void add_edge(int v1, int v2)
+    {
+        to_list[v1].push_back(v2);
+        to_list[v2].push_back(v1);
+    }
+
+    int vertices_count()
+    {
+        return to_list.size();
+    }
+
+    void get_next_vertices(int vertex, vector<int>& output)
+    {
+        output = to_list[vertex];
+    }
+
+    bool edge_exists(int v1, int v2)
+    {
+        for(int v : to_list[v1])
+            if(v == v2)
+                return true;
+        return false;
+    }
+};
+
+struct Edge
+{
+    int v1, v2, weight;
+    Edge();
+    Edge(int v1, int v2, int weight): v1(v1), v2(v2), weight(weight) {}
+};
+
+void find_components_dfs(CListGraph &graph, int vertex, vector <int> &vertex_comp, vector <bool> &visited)
+{
+    visited[vertex] = true;
+    vector <int> next_vertices;
+    graph.get_next_vertices(vertex, next_vertices);
+    for(int v : next_vertices)
+        if(!visited[v])
+        {
+            vertex_comp[v] = vertex_comp[vertex];
+            find_components_dfs(graph, v, vertex_comp, visited);
+        }
+
+}
+
+int find_parent(int vertex, const vector <int> &vertex_comp)
+{
+    while(vertex_comp[vertex] != vertex)
+         vertex = vertex_comp[vertex];
+
+    return vertex;
+}
+
+void union_components(int v1, int v2, vector <int> &vertex_comp)
+{
+    int p1 = find_parent(v1, vertex_comp);
+    int p2 = find_parent(v2, vertex_comp);
+
+    vertex_comp[min(p1, p2)] = max(p1, p2);
+}
+
+long long build_MST(CListGraph &MST, vector <Edge> &edges)
+{
+    const int inf = 1000000;
+    long long weight = 0;
+    int N = MST.vertices_count();
+    vector <int> vertex_comp(N);
+    int components = N;
+
+    for(int i = 0; i < vertex_comp.size(); i++)
+        vertex_comp[i] = i;
+
+    while(1)
+    {
+        if(components == 1)
+            break;
+
+        vector <Edge> min_edges(N, Edge(-1, -1, inf));
+
+        for(Edge edge : edges)
+        {
+            int p1 = find_parent(edge.v1, vertex_comp);
+            int p2 = find_parent(edge.v2, vertex_comp);
+
+            if(p1 != p2)
+            {
+                if(edge.weight < min_edges[p1].weight)
+                    min_edges[p1] = edge;
+                if(edge.weight < min_edges[p2].weight)
+                    min_edges[p2] = edge;
+            }
+        }
+
+
+        for(Edge edge : min_edges)
+        {
+            if(edge.v1 != -1 && !MST.edge_exists(edge.v1, edge.v2))
+            {
+                MST.add_edge(edge.v1, edge.v2);
+                weight += edge.weight;
+
+                union_components(edge.v1, edge.v2, vertex_comp);
+                components--;
+            }
+        }
+    }
+
+    return weight;
+}
+
+int main()
+{
+    int N, M;
+    cin >> N >> M;
+    CListGraph MST(N);
+    vector <Edge> edges;
+
+    for(int i = 0; i < M; i++)
+    {
+        int v1, v2, weight;
+        cin >> v1 >> v2 >> weight;
+        edges.push_back(Edge(v1-1, v2-1, weight));
+    }
+
+    cout << build_MST(MST, edges) << endl;
+
+    return 0;
+}
