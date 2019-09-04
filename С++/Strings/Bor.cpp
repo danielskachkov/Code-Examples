@@ -131,7 +131,6 @@ void split_templ(string &templ, vector <pair <int, int> > &parts)
     {
         if(templ[i] == '?' && templ[i-1] != '?')
             parts.push_back(pair<int, int>(beg, i - 1));
-
         else if(templ[i] != '?' && templ[i-1] == '?')
             beg = i;
     }
