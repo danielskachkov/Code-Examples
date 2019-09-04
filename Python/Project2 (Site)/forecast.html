@@ -1,0 +1,14 @@
+<html>
+    <head>
+        <title>Current Temperature</title>
+    </head>
+<body>
+    <h1> Forecast for 7 days in {{city}}: </h1>
+    {% for item in daily_val %}
+        <h3> {{item[2]}} : &ensp; Max: {{item[0]}} &emsp; Min: {{item[1]}} &emsp; degrees. </h3>
+    {% endfor %}
+    <p><img src="/static/temperature.png"></p>
+    <h3> Location of {{city}}</h3>
+    <p><img src="{{map_src}}"></p>
+</body>
+</html>
